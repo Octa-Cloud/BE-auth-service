@@ -1,0 +1,117 @@
+server:
+  port: 11111
+
+spring:
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+  http:
+    client:
+      factory: jdk
+
+exclude-auth-path-patterns:
+  paths:
+    - path-pattern: /api/users/sign-up
+      method: POST
+    - path-pattern: /api/auth/login
+      method: POST
+    - path-pattern: /api/email/send
+      method: POST
+    - path-pattern: /api/email/verify
+      method: POST
+    - path-pattern: /swagger-ui.html
+      method: GET
+    - path-pattern: /swagger-ui/index.html
+      method: GET
+    - path-pattern: /swagger-ui/**
+      method: GET
+    - path-pattern: /v3/api-docs
+      method: GET
+    - path-pattern: /v3/api-docs/swagger-config
+      method: GET
+    - path-pattern: /webjars
+      method: GET
+    - path-pattern: /actuator/health/**
+      method: GET
+    - path-pattern: /actuator/prometheus/**
+      method: GET
+
+exclude-blacklist-path-patterns:
+  paths:
+    - path-pattern: /api/users/sign-up
+      method: POST
+    - path-pattern: /api/auth/login
+      method: POST
+    - path-pattern: /api/email/send
+      method: POST
+    - path-pattern: /api/email/verify
+      method: POST
+    - path-pattern: /swagger-ui.html
+      method: GET
+    - path-pattern: /swagger-ui/index.html
+      method: GET
+    - path-pattern: /swagger-ui/**
+      method: GET
+    - path-pattern: /v3/api-docs
+      method: GET
+    - path-pattern: /v3/api-docs/swagger-config
+      method: GET
+    - path-pattern: /webjars
+      method: GET
+    - path-pattern: /actuator/health/**
+      method: GET
+    - path-pattern: /actuator/prometheus/**
+      method: GET
+
+jwt-properties:
+  key: ${JWT_KEY:KItFWMZokpiSj6ABi42XJpNWbBqUJ4UT3mhLrXk//IjI2TgQy2Bk+2KrCk4cQDl8oFsSYH9Gr++Lqr2w6CYJnQ==}
+  access-token-expiration: 5
+  access-token-subject: AccessToken
+  refresh-token-expiration: 43200
+  refresh-token-subject: RefreshToken
+  token-header: Authorization
+  bearer: Bearer
+  id: id
+
+logging:
+  level:
+    root: INFO
+    org.springframework: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.boot: DEBUG
+    com.project.user: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    groups-order: DESC
+    tags-sorter: alpha
+    operations-sorter: method
+    enabled: true
+  paths-to-match:
+    - /api/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,liveness,readiness,prometheus
+  endpoint:
+    health:
+      show-details: always
+    liveness:
+      enabled: true
+    readiness:
+      enabled: true
+  metrics:
+    tags:
+      application: user-service
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
