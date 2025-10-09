@@ -12,7 +12,7 @@ public class VerifyAuthenticationController implements VerifyAuthenticationApiSp
             Long userNo
     ) {
         return ResponseEntity.ok()
-                .header("X-User-Id", userNo.toString()) // todo: userNo Long -> String
+//                .header("X-User-Id", userNo.toString()) // todo: userNo Long -> String
                 .build();
     }
 }
