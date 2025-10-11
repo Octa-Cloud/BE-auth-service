@@ -2,6 +2,14 @@ server:
   port: 8080
 
 spring:
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: latest
+      # 배치/업무 시간 감안 기본값 권고
+      max-poll-records: 100
+      max-poll-interval-ms: 300000  # 5분
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
