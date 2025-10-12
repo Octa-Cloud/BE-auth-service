@@ -42,14 +42,13 @@ public class TokenProvider {
     }
 
     private String createToken(Long id, String subject, Long expiration) {
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                .setIssuedAt(now)
+                .setIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
                 .setExpiration(Date.from(
-                        LocalDateTime.now()
-                                .plusMinutes(expiration)
-                                .atZone(ZoneId.of("Asia/Seoul"))
+                        now.plusMinutes(expiration)
+                                .atZone(ZoneId.systemDefault())
                                 .toInstant()
                 ))
                 .setSubject(subject)
