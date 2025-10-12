@@ -12,8 +12,7 @@ public class ClientConfig {
     @Bean
     public RestClient userRestClient() {
         return RestClient.builder()
-                .baseUrl("http://localhost:51234")
-//                .baseUrl("http://user-service.default.svc.cluster.local:8080")
+                .baseUrl("http://user-service.microservices-dev.svc.cluster.local:8080")
                 .requestFactory(new HttpComponentsClientHttpRequestFactory(HttpClients.createDefault()))
                 .defaultHeader("X-Internal-Call", "auth-service")
                 .build();
