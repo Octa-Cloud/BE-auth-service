@@ -26,14 +26,14 @@ public class AuthRevokeListener {
     private final RefreshTokenService refreshTokens;
 
     @RetryableTopic(
-            attempts = "5",
+            attempts = "3",
             backoff = @Backoff(delay = 1000, multiplier = 2.0),
-            autoCreateTopics = "true",
+            autoCreateTopics = "false",
             dltTopicSuffix = ".dlt",
             exclude = { InvalidPayloadException.class } // 독성 → 즉시 DLT
     )
     @KafkaListener(
-            topics = "auth.token.revoke",
+            topics = "auth.token-delete.command",
             groupId = "auth-service",
             containerFactory = "kafkaManualAckFactory"
     )
@@ -71,8 +71,4 @@ public class AuthRevokeListener {
         ack.acknowledge();
     }
 
-    @KafkaListener(topics = "auth.token.revoke.dlt", groupId = "auth-service")
-    public void onRevokeDlt(String payload) {
-        log.error("[DLT][auth.token.revoke] {}", payload);
-    }
 }

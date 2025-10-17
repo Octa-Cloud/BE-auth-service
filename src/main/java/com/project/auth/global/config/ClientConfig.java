@@ -13,8 +13,8 @@ public class ClientConfig {
     public RestClient userRestClient() {
         return RestClient.builder()
 //                .baseUrl("http://localhost:51234")
-                .baseUrl("http://user-service:8080") // 도커용
-//                .baseUrl("http://user-service.default.svc.cluster.local:8080")
+//                .baseUrl("http://user-service:8080") // 도커용
+                .baseUrl("http://user-service.default.svc.cluster.local:8080")
                 .requestFactory(new HttpComponentsClientHttpRequestFactory(HttpClients.createDefault()))
                 .defaultHeader("X-Internal-Call", "auth-service")
                 .build();
