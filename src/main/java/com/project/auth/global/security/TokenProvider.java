@@ -9,6 +9,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,6 +28,7 @@ import java.util.Set;
 
 import static com.project.auth.global.exception.code.status.AuthErrorStatus.UNSUPPORTED_JWT;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenProvider {
@@ -77,16 +79,37 @@ public class TokenProvider {
 
     public Optional<Long> getId(String token) {
         try {
-            return Optional.ofNullable(getClaims(token).get(jwtProperties.getId(), Long.class));
+            log.debug("DEBUG: TokenProvider.getId - token: {}", token);
+            Claims claims = getClaims(token);
+            log.debug("DEBUG: TokenProvider.getId - claims: {}", claims);
+            Long userId = claims.get(jwtProperties.getId(), Long.class);
+            log.debug("DEBUG: TokenProvider.getId - user ID: {}", userId);
+            return Optional.ofNullable(userId);
         } catch (Exception e) {
+            log.error("DEBUG: TokenProvider.getId - exception occurred: {}", e.getMessage(), e);
             return Optional.empty();
         }
     }
 
     public Optional<String> getToken(HttpServletRequest request) {
-        return Optional.ofNullable(request.getHeader(jwtProperties.getTokenHeader()))
-                .filter(token -> token.startsWith(jwtProperties.getBearer()))
-                .map(token -> token.replace(jwtProperties.getBearer() + " ", ""));
+        String headerValue = request.getHeader(jwtProperties.getTokenHeader());
+        log.debug("DEBUG: TokenProvider.getToken - header name: {}", jwtProperties.getTokenHeader());
+        log.debug("DEBUG: TokenProvider.getToken - header value: {}", headerValue);
+        log.debug("DEBUG: TokenProvider.getToken - bearer prefix: {}", jwtProperties.getBearer());
+        
+        if (headerValue == null) {
+            log.error("DEBUG: TokenProvider.getToken - header value is null");
+            return Optional.empty();
+        }
+        
+        if (!headerValue.startsWith(jwtProperties.getBearer())) {
+            log.error("DEBUG: TokenProvider.getToken - header value does not start with bearer prefix");
+            return Optional.empty();
+        }
+        
+        String token = headerValue.replace(jwtProperties.getBearer() + " ", "");
+        log.debug("DEBUG: TokenProvider.getToken - extracted token: {}", token);
+        return Optional.of(token);
     }
 
     private Claims getClaims(String token) {
