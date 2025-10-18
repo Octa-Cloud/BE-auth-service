@@ -1,0 +1,23 @@
+apiVersion: v1
+entries:
+  user-service:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-09-27T17:39:14.675915+09:00"
+    description: User Service Helm Chart for KEA Project
+    digest: a08f207d38c655673518b4fb1b34e0655e4e16723812ffced18888af7fe17e20
+    keywords:
+    - user-service
+    - spring-boot
+    - microservice
+    maintainers:
+    - email: mong.health@gmail.com
+      name: KEA Team 3 Octa-Cloud
+    name: user-service
+    sources:
+    - https://github.com/Octa-Cloud/user-service
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/Octa-Cloud/Infra-helm-charts/main/user-service/user-service-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-09-27T17:39:14.674425+09:00"

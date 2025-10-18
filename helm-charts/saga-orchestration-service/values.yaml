@@ -1,0 +1,146 @@
+# =============================================================================
+# Saga Orchestration Service Helm Chart Values
+# =============================================================================
+
+# =============================================================================
+# 이미지 설정
+# =============================================================================
+image:
+  repository: octacloud/saga-orchestration-service
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# =============================================================================
+# 서비스 설정
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+# =============================================================================
+# 배포 설정
+# =============================================================================
+replicaCount: 2
+
+# =============================================================================
+# 리소스 설정
+# =============================================================================
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+# =============================================================================
+# 헬스 체크 설정
+# =============================================================================
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+
+# =============================================================================
+# 환경 변수 설정
+# =============================================================================
+env:
+  # Database configuration
+  RDB_USERNAME: "monguser"
+  RDB_PASSWORD: "mongpassword123"
+  RDB_URL: "jdbc:mysql://localhost:3306/mong-saga?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  
+  # Logging
+  LOG_LEVEL: "INFO"
+  LOG_PROFILE: "text"
+
+# =============================================================================
+# 서비스 계정 설정
+# =============================================================================
+serviceAccount:
+  create: true
+  name: ""
+
+# =============================================================================
+# ConfigMap 설정
+# =============================================================================
+configMap:
+  create: true
+  name: ""
+
+# =============================================================================
+# Secret 설정
+# =============================================================================
+secrets:
+  create: true
+  name: ""
+  # 민감정보는 Sealed Secrets로 관리합니다. (빈 값 유지)
+  KAFKA_SASL_USERNAME: ""
+  KAFKA_SASL_PASSWORD: ""
+
+sealedSecrets:
+  enabled: true
+  encryptedData:
+    # 다음 키에 kubeseal로 암호화한 값을 세팅하세요 (현재 클러스터의 공개키 사용)
+    KAFKA_SASL_USERNAME: "AgDoGHSgf0khZ3cQgPCDHPxAJoc+CE5O0NxVZ/sNT8mcUpX3ShE/ZeL93ptKtdGwWJrNt/+8wLreziBMFGh/sA+9omvf2c3j1gx3rCB6bnlpQv7vXkc35LTcjom+4RENEVX8ELlqIm4AVFIKJ+JSLj7co2IWtbqGjwqjT5CDGeLh2PMuGe30PcppD6hKP/3tGsHCWxM5SEeQkYPb2LBrU82q6yoDeV/N28rSDRcwJRfeOcuR80Wrt+roeG8Nf5TOFiqkGl46aVV1KLRMRFQgP4a5DoAFVYPpJ63nwKfVrdZLgHtCfSoX4LCt0W8DltQwYklVnUpe4PkGBEZR5gFwDbTI09eY1bh05/3zcn8KuRtWF+922RGOodkzxpLlrBB4qJP3ud4QIsr+0d56rQm0+MT+uW4a1a8X0uSTuFF48ITDSu7Ess04XtqooYAhEHfo7F7x2mhe0MogD8o6WvP9eDaRF1FQwKhjnCajs+IlrVaLPNUrdy+/V1vmB5ewtL2u20pEsTsEBdE9BVXAI97VHHtSa5lacdDicnBajHz7UmUoNwdSyQOO7qiuyTLMuRfHzx8eNePg22RGfwdlZAZfzRZYOtBgGU9ONU4VITop00FbDPlO8E6xdpJGw9Sjj4dMfrZY/bGaAGE/gL67onCp/mw84IuUIdQYxzS6nhkDpI7IvvwOuFo9RQNiIy3bIIDctqHvEVxoV4SX+tPRNj2yfHht"
+    KAFKA_SASL_PASSWORD: "AgDaJtNsEA2u+iihn6lCAbo4hoVtgC/DoBYfMjZPSlp5JcK559V8UH+h5rf7jg3DsxWFS9qebbnZs85gnZz/2zImNJTBXrLRzyEx4u7sUkSt/pjcRK034aCBGrrjTXUYjs1Sc8PucY8l1Fbxu/+8Bv78vEVelF7B2zHgrVlSgr9z08dgGj+tQ2uKqBymT9uJO6SgWSNodTeuXpNV0T3iZNIeOBUfs08RyzIwiTMKQfuIlb1F/w3jf5UryI4FrbRhsxC48ZA/P6oEmZBxSaj5z/nAyt2QgpV9eGszfkCxsDBNNA8WEbb8YCnVVTZwiHR/jS2Nffc1cemyEC3myeJD5vXCZhhUxykFeNfztGOylSHVx+3WJ8vs1aZV2IIkcwpYddT/RxIe5YyrZeaRQK2dctocihyj4n2bwRzx/16lcukgjYVgfNazOqQusCT63fuSDv6H1lxuvsEilDxj+hoHmLUiEF26TJBZ25tpwq3yJviTt4TjiRsDSrlpN70i6t74/4MyOI+o+03ntUINtvL1BswjY+7xUaISSAfICii/vb84iGOCk23HxnphiL49mrGT3djK1W7ttr3CjbQ1WZ8fFZCvXQa02EZIzNFyS2cGsS7hj8DWwPkmjA0yzvjAG79iQoaUc/H+4ORwgNGI8H9lkGRESM7WvaO7JRruRp6IPvnE79mSqHBRmlPKyaus4KcXyjZEUChpFa47FoDJW9Rt6yRW8a+Lw6aD8F5YuJ9uGHMTMkTPvpt7WxwfMpwtTWlRY/fez2djapX4O6EzS++uLM00"
+
+# =============================================================================
+# Ingress 설정
+# =============================================================================
+ingress:
+  enabled: false  # Saga orchestration service는 내부 서비스이므로 ingress 불필요
+
+# =============================================================================
+# 노드 선택자
+# =============================================================================
+nodeSelector: {}
+
+# =============================================================================
+# 톨러레이션
+# =============================================================================
+tolerations: []
+
+# =============================================================================
+# 어피니티
+# =============================================================================
+affinity: {}
+
+# =============================================================================
+# Cloud SQL Proxy 설정
+# =============================================================================
+cloudSqlProxy:
+  enabled: true
+  image: gcr.io/cloudsql-docker/gce-proxy:latest
+  port: 3306
+  instance: mong-develop:asia-northeast3:mong-mysql
+
+# =============================================================================
+# 추가 설정
+# =============================================================================
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+imagePullSecrets: []
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+lifecycle: {}

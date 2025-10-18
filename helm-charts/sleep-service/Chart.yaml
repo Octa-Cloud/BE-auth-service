@@ -1,0 +1,16 @@
+apiVersion: v2
+name: sleep-service
+description: Sleep Service Helm Chart for KEA Team 3
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - sleep-service
+  - spring-boot
+  - microservice
+home: https://github.com/Octa-Cloud/Infra-helm-charts
+sources:
+  - https://github.com/Octa-Cloud/Infra-helm-charts
+maintainers:
+  - name: KEA Team 3
+    email: team3@kea.com

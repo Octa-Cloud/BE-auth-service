@@ -1,0 +1,19 @@
+{{- if and .Values.mimir.enabled .Values.mimir.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mimir-pvc
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: mimir
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mimir.persistence.size }}
+  {{- if .Values.mimir.persistence.storageClass }}
+  storageClassName: {{ .Values.mimir.persistence.storageClass }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,19 @@
+{{- if and .Values.tempo.enabled .Values.tempo.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tempo-pvc
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: tempo
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.tempo.persistence.size }}
+  {{- if .Values.tempo.persistence.storageClass }}
+  storageClassName: {{ .Values.tempo.persistence.storageClass }}
+  {{- end }}
+{{- end }}

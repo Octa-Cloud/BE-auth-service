@@ -1,0 +1,225 @@
+# =============================================================================
+# Analysis Service Helm Chart Values
+# =============================================================================
+
+# =============================================================================
+# 이미지 설정
+# =============================================================================
+image:
+  repository: octacloud/analysis-service
+  tag: "fcc94b143c71b31be5c61ea1c808a2b752c99234-18612848509"
+  pullPolicy: IfNotPresent
+# =============================================================================
+# 서비스 설정
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+# =============================================================================
+# 배포 설정
+# =============================================================================
+replicaCount: 3
+# =============================================================================
+# 리소스 설정
+# =============================================================================
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 50m
+    memory: 512Mi
+# =============================================================================
+# 헬스 체크 설정
+# =============================================================================
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+# =============================================================================
+# 환경 변수 설정
+# =============================================================================
+env:
+  # 기존 환경변수들 (유지)
+  REDIS_HOST: "10.226.34.155"
+  REDIS_PORT: "6379"
+  PYTHONUNBUFFERED: "1"
+  MONGODB_URI: "mongodb://mongodb.microservices-dev.svc.cluster.local:27017/mong"
+  DATABASE_URL: "mysql+pymysql://monguser:mongpassword123@localhost:3306/mong-analysis?charset=utf8mb4"
+  DB_USER: "monguser"
+  DB_PASSWORD: "mongpassword123"
+  DB_HOST: "127.0.0.1"
+  DB_PORT: "3306"
+  DB_NAME: "mong-analysis"
+  KAFKA_ENABLED: "true"
+  KAFKA_BROKERS: "pkc-gq2xn.asia-northeast3.gcp.confluent.cloud:9092"
+  KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
+  KAFKA_SASL_MECHANISM: "PLAIN"
+  KAFKA_SESSION_TIMEOUT_MS: "45000"
+  KAFKA_PROTOBUF_ENABLED: "true"
+  TOPIC_BRAINWAVE_INPUT_RAW: "brainwave.input.raw"
+  TOPIC_BRAINWAVE_SPLIT_EPOCHS: "brainwave.split.epochs"
+  TOPIC_BRAINWAVE_ANALYZED_EPOCH: "brainwave.analyzed.epoch"
+  TOPIC_BRAINWAVE_PERSIST_REQUESTS: "brainwave.persist.requests"
+  TOPIC_DLQ: "brainwave.dlq"
+  GROUP_BRAINWAVE_SPLITTER: "brainwave-splitter"
+  GROUP_BRAINWAVE_ANALYZER: "brainwave-analyzer"
+  GROUP_BRAINWAVE_AGGREGATOR: "brainwave-aggregator"
+  GROUP_BRAINWAVE_DB_WRITER: "brainwave-db-writer"
+  # 새로 추가된 환경변수들 (음성 분석 기능)
+  # Logging
+  LOG_LEVEL: "INFO"
+  LOG_PROFILE: "text"
+  # Sound worker defaults
+  YAMNET_SAMPLE_RATE: "16000"
+  YAMNET_CONFIDENCE: "0.87"
+  YAMNET_MODEL_HANDLE: "https://tfhub.dev/google/yamnet/1"
+  # Sound splitter
+  SOUND_SPLITTER_SAMPLE_RATE: "16000"
+  SOUND_SPLITTER_CHUNK_SECONDS: "30"
+  SOUND_SPLITTER_MAX_CHUNK_BYTES: "200000"
+  FFMPEG_BIN: "ffmpeg"
+  # Processing workers
+  BRAINWAVE_PROC_WORKERS: "2"
+  SOUND_PROC_WORKERS: "2"
+  # Models
+  MODELS_DIR: "./app/models"
+  # Kafka 추가 설정
+  WAIT_FOR_KAFKA: "1"
+  WAIT_TIMEOUT_SEC: "120"
+  KAFKA_CLUSTER_ID: "lkc-md8p3q"
+  # Sound topics
+  TOPIC_SOUND_INPUT_RAW: "sound.input.raw"
+  TOPIC_SOUND_SPLIT_EPOCHS: "sound.split.epochs"
+  TOPIC_SOUND_ANALYZED_EVENT: "sound.analyzed.event"
+  TOPIC_SOUND_PERSIST_REQUESTS: "sound.persist.requests"
+  # Sound consumer groups
+  GROUP_SOUND_SPLITTER: "sound-splitter"
+  GROUP_SOUND_ANALYZER: "sound-analyzer"
+  GROUP_SOUND_DB_WRITER: "sound-db-writer"
+  # Retry
+  RETRY_MAX_ATTEMPTS: "3"
+  RETRY_BACKOFF_MS: "200"
+  # Sound analysis
+  SOUND_YAMNET_MODEL_URL: "https://tfhub.dev/google/yamnet/1"
+  SOUND_YAMNET_CLASS_MAP_URL: "https://raw.githubusercontent.com/tensorflow/models/master/research/audioset/yamnet/yamnet_class_map.csv"
+# =============================================================================
+# 서비스 계정 설정
+# =============================================================================
+serviceAccount:
+  create: true
+  name: ""
+# =============================================================================
+# ConfigMap 설정
+# =============================================================================
+configMap:
+  create: true
+  name: ""
+# =============================================================================
+# Secret 설정
+# =============================================================================
+secrets:
+  create: true
+  name: ""
+  # 민감정보는 Sealed Secrets로 관리합니다. (빈 값 유지)
+  JWT_SECRET: ""
+  KAFKA_SASL_USERNAME: ""
+  KAFKA_SASL_PASSWORD: ""
+  # 새로 추가된 JWT 설정
+  JWT_ALGORITHM: "HS256"
+  JWT_ACCESS_SUBJECT: "AccessToken"
+  JWT_REFRESH_SUBJECT: "RefreshToken"
+  JWT_TOKEN_HEADER: "Authorization"
+  JWT_BEARER_PREFIX: "Bearer"
+  JWT_ID_CLAIM: "id"
+sealedSecrets:
+  enabled: true
+  encryptedData:
+    # 다음 키에 kubeseal로 암호화한 값을 세팅하세요 (현재 클러스터의 공개키 사용)
+    JWT_SECRET: "AgBcOz5Ao1RsuIah4UHqJXH4vSWYp237RgqUaG5hid/nHK2QCUNInwtwlagg/wn+UhocGAwlWcQb0OAINKtl5x1cZjma8QyRlMz2XKn0YOnHSnFxo1ruE0q7f/VVsvcJ2YEtnUrybNUT7zX3y0fwnbuwcvNtu4LkQWIAy+RdtHu14MHhKaskkvSo1D76j3XgzZdswA1merM2u84QFP0WCTq4HvckDzdH4Dpja8oo5jqBi/VcEXLJZJ9eo4ntY5Ff6f6Qf21Mzn+p8IBzeT8fyetCnyORayRh+HaRo1w7qhHOBOCY4HNcxiwWHscnmJRvD5kB8DShFcpAI752U4dnbceCvXNR51LtrMXPlaueDqZm2Znrk19yLgrPmrKqob3T3Z6R1qqd7jFVTq/ScoKKk9+VW1RPg6LiJNzxhsBDCXYX1YQpaaiSLWmNjFg0yw8muWTXOrDgbZKpdP3UaRqKZed8Y6iL2OLlUUaY1nHVZD05ArzfIAkakM5KjXeAzDhcd2jQ44uXcAu6YFN1AsHG2EfwTusAeQ81Q8CqOECMnSXlD7BTKyIm5ExRytVM1RhjjQ3AiWHHoRtOVsZvFdW9HDykZWV1EnhTwGjlUmTKjo9AjRVpp2krfV79Y0cHv3PdmXaGPNfHGB776dBItH2WMSE0u77nnDPEkkjzi4SyuCNFzX3/eidK4Drz6XzxUsKZVOJNtknbrOJArwoVfqG7Nl8xfI/iWnO3SsTDGfPJfIjmjlIOZX6zRVYgnlz6jEC4GElZJIVzHfmyDKLgvmw+DzowYZ2bx/jiPvHt/edVunw5gEODuLxlmi/lXQ=="
+    JWT_ACCESS_SUBJECT: "AgCL/FWDLQqxNxBMOcTnoC0tevmqykR2MqUBGSigZOlcCbePka7a+/GAqO8kEuE91K80LQhNHFeH8/zHJm2QZD97rzuWKyw5NMS51yUswTM440U+Q0nbJfODZD4St1P9+CPSU8mZZuLWtN714VplghhYBJhbzMCsXcGyLh8gSmEoM/SB/twhVo4vTOfZm4Y32rDfDBiYpHtehswz+0q4hXaLSjG+98MpKkAb2X60eCf5DSZHiAIlT4ATx8CAzIMlsUH1aF2xJ1ixlsSuPLwWfoWobJbK5JgwwflWf80kgSZ8/RLp7AwGDhLHMicBhz6+jvrgUOO8rAXZUEAVw6vtdPwgaNSzDHOz4xIR0o6NDc7z92sDVrhZLfC64CgoW02LTgxbxKXkssQKvwlGlaRp+0a2EQRSdktKZC2AvDQQYTczpKXISrgpWL8DlOaxRq9KSqWCeJUoFhu9oV1iT3PHhmCvzWJJ/OvmgfxaUjSdTg6tLAvSTjbR3lFwreG1NhjwsFKSoZwov4EjretSDT9F+RhkoQXVmuFhFfrC0L0/DbDZrhJJjhp7b5P8sNGtLusqDHK5MXTXMngEXedEz8oLg5JIUA4k7i38o8q0Qk2QjkYKyjidl/xg/rThuGRJPta9w/I0mpMKBzIaI03B4mBIrWX+L0+++A05ZyzgRTxVbm8GFLdIJf87wJ80tXuKsNYudqa6o9CFmsMyZHYVxx0="
+    JWT_ALGORITHM: "AgA9ldqz3yv3fmcgAoz7hGwHlYLRq3JbaeF0XPt6btHKqxDbs+3FXsKaUrjbE0ZtU1C+Frz3Of9oPdmTQe4n4Ft8TYXxaEi/EKUxzj+iTQZ/NtEMQB9e69If8gnurNdGZo5TpoNwC798y1X6h6BzjoxNIpcHFxbuyCg7WTsr8W+k6tsvPOsLNaVpsX99YyhLnfdHi9oCLZmV+MWTdCo7DAP2ojxAxXqbHivstqhtnAuRcNikVyp0gVpdURFEipKNdsZI/7IQBsKz3yIijwOJ0MO3GhAQLm3CnyVMt1tOonnWL2uuQDd4Rs7kEgPGJOq/yu7Rzz0BTnTy+iiOatDOs79jpvJKzEU9sVgOyGLAQI87vHuPegrFsgmryMAe0j5WVbsEGHXjDHMhPnYnsiNYooY0SsCQhhDPY0ZvPJEZS+MhND6fskGQw1IDWpC9zB2qb6vh3kOJE1EDQC/SqE3LOW+v38N/AyPmQKJeGTAbNkyTK5tRR9j/eU9f8tQMum+S/B4yAi4xaJo24CAzo4+Zs5nKAE4O6fwrDRHR19ML65u/LbFUHkJUO+MfoDBTLCAgFo6XIFOfvbouCVgfr54TLF4bPQC9ehPoRcPvHyu6YK7vaE83qVmJ1fKw0nTykuWDyrQQOGubA0bbbW/F4BiYUMWF3vhph6pNibL0DFT8VPPbE6F0KP4wIgLJnN/pwamLhivTGR2vmpA="
+    JWT_BEARER_PREFIX: "AgDVm1eNe5nTiDJ2sJaHIvMpbpg2gH0AuErjAAr2n7DtbaRey6/aXSz0pDX9gWNopYG1b3SA5AYEDHUr1w3+z6fs4qXQPfcBe40/MRDF13kdFhLH3xajimO8+3tSFz91jck1jKiGIF68oMbZJhJzlEgYPM8bq63d/7gSef0RU7lua+IanoIbniFX8QX1tqn71bRgGDyZ6MGqbqdnSWTy/aPgPdx62St3Q6pd2YHjvUcNqKhemu12UFGc/Pv2CMVZCU2uuHD8TEJ82EB4LZIZ86nrEVHOn16kQSXFi7rNQzLyZQ0j+HzcGMYGMUZrk0HCn0gNvZDUMdfTDsnuhzSSFGsi/4ufhLWecarGBmSO44tuu8ho33WQxzT3gjqVqFJKdM3XFCi4xgucmQVWnVQLjcv60LTDejzWDoNZiLtQAPe4LFxvDlBZYD6pOLkfbcYQZKholdM9RWg9VlTkLmURLHyge0dmlRJ5qfDhWdYarqqtjJ94RXowpDkROkzUFvc2WHmzvF1QUbiqoYw9Fb1EK/Cet+XWWt8Rhc8fafx5c0r00QTwW2hvWwWmfEgIGfBQNBNutqa/0Vw/dSiY3ZwAFFeCB7OLcF1VcmxjlNs4Ea6/SIAFPZrkzsbTviXir+MrGCEh815hxpmyqiexjydcTHlUU0KeN6CiWqWnc5QDgLqJ0K/8JZvBPTEl/QAeR/2w/s58Ne/Flb8I"
+    JWT_ID_CLAIM: "AgAXl1dgFGbhS7cgAuj/vRZWCK2ZdnQmiqKomfJzy7A8LWo8p6DcJ+ofD/1xwHftIINv+g4QspN+k2VIag9b79up5tpHa/x8U20qVLf5nvE4PGWdkPNAUl+MUGC+fseMdB/C0OQciHdS4XLw0wHiup69qGh8dWAC+1q9y0OO4ZZrn2pGMLU67uvYrjUju7QsZ2IWoAkFkkcV1g6ioK35XardRiWPaEbUrArX5YtwNQoFPHR6Vp2mG8IaHWM8NLLrXwJ12TjRUheCHN8oEpe5yVICP59fLRGlAyOg3wvx2uTi7yX2Y0nXKb9Zkc3x7qpyxcEEQW/N34gbeFKar2iOx3wtpSbeJKt3mJpo5E7kN89onauCZ1YcX0WunrphVg/h4R6/aI0hUpHLreZ6a/bWrRxFqOZgK2bTavWwEbHrPuOiD/6aocER1jfARgrVCbplU2umC5IMqzSAe4xNEdxDs9uypWLowR/8NgVaIZt+XQzQ2xnMDRMj0K4qcDnmeiFNXXIcJt+33q0t5Gw0+N+IvaWnZTb852UE7k5Al4dYWwJSsc4k8UUICZiV0jkOfd8CqUv3sKuqJ/k8RC2/X5MUz3pelD9zZhkwtTYiUoQaDiUf6hHUhlXm9kHfYbVf8M2adlAIcR3PUmbkAqu8p9gbZFKwnmtfWPH+uzuBysLDibFKwPIUGDYVkC9l/cGhF1hqi/3hLJU="
+    JWT_REFRESH_SUBJECT: "AgAoBI88XSNdymEXegYEPzJiTif2d5z6a4nyt/vDHOQea2ga26gGPSghUvoQ6SBhXoie9KDBJU1qIgcoyvLJ9p5bJKe/U70P1KhpWm72biKo/r1M5LH+PdUqJOKozYjAEVsSk6NkmSO9WAc3/D0p4aliRU9dhysr0w4DnnmYUNt10K9Ql66rVZdRJ5C2P8Dk9YKcJVMIqJTuKPrlc3DJ0SopRaeZeaTAtslL5UiJxl8n0fLdYqr4ykFUktpnyDORhcjvU2KmBjHTA7094GW6ElVJwaaOTJaiBiuZ+9w2x3NRYVfrsyoVyPpopoN2jmAgAJWIOk4alJpEhokOfnbGKhqGuFq3Q9BNHPDmubUJr4UiXL/3tTuz/f1/09nWMwth998GLuu5Ty3ovZVL7WfrFO39SEQuxepYUFs/G7gWwbJjPGORltU1cjXKjSOXDvDEpP6SNhx1+N3t/1synfvgqwS2vYF5A8RUQVQd7sC3KXgLKTapbV29qslppKrw6YNaAye2ODy5qB/ktfBPFhsofNj+Mkx4zKGLBI46UJhgch3LdFkPtZpLR4357Nn5d7yOT+DXJt9PEzKB4O8dTZLwpqjP4RXV/qwT33RvBRwgw3wZZnWeEk5ZJUBY6j7ubsbXXmYDVJvyzQp6tsufM8dGMfSMQsYsbQP1opWsbqEOl0vxMolXBH20mPTauOTzHtBbDq6OzLRcdgfl9hSFBEsO"
+    JWT_TOKEN_HEADER: "AgA4nR7dtuPrrhVccB2tsxhpvC3dPTmbN8kcrePc6qmyf61g0+Lcre3MwZuvy/dUK02KKo7BsQWN2HC88eeuHRneeqHYlmwYULnTh8HgFKbB6ENzozSH/h6oFYVy2Md1OkC/giqDp8JiI9/nHdzIuOwpytNgaiPjGJ7mSh77Hr/zvpgAl+MkI2kBlldVYeWdEaSoFPw6bBajVDdLeX90Wls9/rXDa5wYVYrErFW4qsCKhTxKysj+NF/VRLMue309QV1xQfmnroU369jhgSqjwp/hY9dtalpEcNDwah6FZK183gm+PZsGlA+H9Tc6/+1EkvqWS/WsCSa61ZfykFP48w+6SEKas7WCVMgVcGGL8xzTIqdXF0f9vR5mUP1nsDeAzXPD3ZgYW+jHKmQWNLGNXmt1/UUM1htiP/qz33gca+2QuTnHXfpgl/0DWjGIlj60O+5nvlDaNr0Ih0T9BAdpmILx48I7lZ1SQz5xUT0SzeCIKWsDiWQwOe6ktDIffeHijbnTgbefd1ruMvI0c+Apx3qoAcUkQO2T7tNpvHVrm1rt9NHDp9gO3GDrsjM8rDI70WXQ4a7WlWsUC4J5Obc712iPdfKqlb9bW1iGKSuKLUsguphQG9OgsU+qv5Eu5oFEIzlTZiuUV9jXb+PWWE6i+vKGv+cmLXIhmwWeI2s6Dw9XZR/IJIfs9aCCuhipup0/xg7QMLY9LHmBF7c++DbXyQ=="
+    KAFKA_SASL_USERNAME: "AgDoGHSgf0khZ3cQgPCDHPxAJoc+CE5O0NxVZ/sNT8mcUpX3ShE/ZeL93ptKtdGwWJrNt/+8wLreziBMFGh/sA+9omvf2c3j1gx3rCB6bnlpQv7vXkc35LTcjom+4RENEVX8ELlqIm4AVFIKJ+JSLj7co2IWtbqGjwqjT5CDGeLh2PMuGe30PcppD6hKP/3tGsHCWxM5SEeQkYPb2LBrU82q6yoDeV/N28rSDRcwJRfeOcuR80Wrt+roeG8Nf5TOFiqkGl46aVV1KLRMRFQgP4a5DoAFVYPpJ63nwKfVrdZLgHtCfSoX4LCt0W8DltQwYklVnUpe4PkGBEZR5gFwDbTI09eY1bh05/3zcn8KuRtWF+922RGOodkzxpLlrBB4qJP3ud4QIsr+0d56rQm0+MT+uW4a1a8X0uSTuFF48ITDSu7Ess04XtqooYAhEHfo7F7x2mhe0MogD8o6WvP9eDaRF1FQwKhjnCajs+IlrVaLPNUrdy+/V1vmB5ewtL2u20pEsTsEBdE9BVXAI97VHHtSa5lacdDicnBajHz7UmUoNwdSyQOO7qiuyTLMuRfHzx8eNePg22RGfwdlZAZfzRZYOtBgGU9ONU4VITop00FbDPlO8E6xdpJGw9Sjj4dMfrZY/bGaAGE/gL67onCp/mw84IuUIdQYxzS6nhkDpI7IvvwOuFo9RQNiIy3bIIDctqHvEVxoV4SX+tPRNj2yfHht"
+    KAFKA_SASL_PASSWORD: "AgDaJtNsEA2u+iihn6lCAbo4hoVtgC/DoBYfMjZPSlp5JcK559V8UH+h5rf7jg3DsxWFS9qebbnZs85gnZz/2zImNJTBXrLRzyEx4u7sUkSt/pjcRK034aCBGrrjTXUYjs1Sc8PucY8l1Fbxu/+8Bv78vEVelF7B2zHgrVlSgr9z08dgGj+tQ2uKqBymT9uJO6SgWSNodTeuXpNV0T3iZNIeOBUfs08RyzIwiTMKQfuIlb1F/w3jf5UryI4FrbRhsxC48ZA/P6oEmZBxSaj5z/nAyt2QgpV9eGszfkCxsDBNNA8WEbb8YCnVVTZwiHR/jS2Nffc1cemyEC3myeJD5vXCZhhUxykFeNfztGOylSHVx+3WJ8vs1aZV2IIkcwpYddT/RxIe5YyrZeaRQK2dctocihyj4n2bwRzx/16lcukgjYVgfNazOqQusCT63fuSDv6H1lxuvsEilDxj+hoHmLUiEF26TJBZ25tpwq3yJviTt4TjiRsDSrlpN70i6t74/4MyOI+o+03ntUINtvL1BswjY+7xUaISSAfICii/vb84iGOCk23HxnphiL49mrGT3djK1W7ttr3CjbQ1WZ8fFZCvXQa02EZIzNFyS2cGsS7hj8DWwPkmjA0yzvjAG79iQoaUc/H+4ORwgNGI8H9lkGRESM7WvaO7JRruRp6IPvnE79mSqHBRmlPKyaus4KcXyjZEUChpFa47FoDJW9Rt6yRW8a+Lw6aD8F5YuJ9uGHMTMkTPvpt7WxwfMpwtTWlRY/fez2djapX4O6EzS++uLM00"
+# =============================================================================
+# Ingress 설정
+# =============================================================================
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/auth-url: "http://auth-service.microservices-dev.svc.cluster.local:8080/api/auth/internal"
+    nginx.ingress.kubernetes.io/auth-method: "POST"
+    nginx.ingress.kubernetes.io/auth-request-headers: "Authorization"
+    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: "api.mong.live"
+      paths:
+        - path: /api/analysis
+          pathType: Prefix
+  tls:
+    - secretName: api-mong-live-tls
+      hosts:
+        - "api.mong.live"
+# =============================================================================
+# 노드 선택자
+# =============================================================================
+nodeSelector: {}
+# =============================================================================
+# 톨러레이션
+# =============================================================================
+tolerations: []
+# =============================================================================
+# 어피니티
+# =============================================================================
+affinity: {}
+# =============================================================================
+# Cloud SQL Proxy 설정
+# =============================================================================
+cloudSqlProxy:
+  enabled: true
+  image: gcr.io/cloudsql-docker/gce-proxy:latest
+  port: 3306
+  instance: mong-develop:asia-northeast3:mong-mysql
+# =============================================================================
+# Blue-Green 배포 설정
+# =============================================================================
+blueGreen:
+  enabled: true
+  activeHash: "active"
+  previewHash: "preview"
+  autoPromotionEnabled: true
+  scaleDownDelaySeconds: 30
+# =============================================================================
+# 추가 설정
+# =============================================================================
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+imagePullSecrets: []
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+lifecycle: {}

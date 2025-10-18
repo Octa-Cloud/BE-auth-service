@@ -1,0 +1,165 @@
+# Default values for user-service.
+replicaCount: 1
+image:
+  repository: octacloud/user-service
+  pullPolicy: IfNotPresent
+  tag: "321a7f545d7734ebdc29bdcf0abc8e6463840b34-18611646110"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "user-service"
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/actuator/prometheus"
+  prometheus.io/port: "8080"
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+podSecurityContext: {}
+# fsGroup: 2000
+
+securityContext: {}
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/auth-url: "http://auth-service.microservices-dev.svc.cluster.local:8080/api/auth/internal"
+    nginx.ingress.kubernetes.io/auth-method: "POST"
+    nginx.ingress.kubernetes.io/auth-request-headers: "Authorization"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: "api.mong.live"
+      paths:
+        - path: /api/users
+          pathType: Prefix
+  tls:
+    - secretName: api-mong-live-tls
+      hosts:
+        - "api.mong.live"
+# -- Expose the service via gateway-api HTTPRoute
+# Requires Gateway API resources and suitable controller installed within the cluster
+# (see: https://gateway-api.sigs.k8s.io/guides/)
+httpRoute:
+  # HTTPRoute enabled.
+  enabled: false
+  # HTTPRoute annotations.
+  annotations: {}
+  # Which Gateways this Route is attached to.
+  parentRefs:
+    - name: gateway
+      sectionName: http
+      # namespace: default
+  # Hostnames matching HTTP header.
+  hostnames:
+    - chart-example.local
+  # List of rules and filters applied.
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /headers
+            #   filters:
+            #   - type: RequestHeaderModifier
+            #     requestHeaderModifier:
+            #       set:
+            #       - name: My-Overwrite-Header
+            #         value: this-is-the-only-value
+            #       remove:
+            #       - User-Agent
+            # - matches:
+            #   - path:
+            #       type: PathPrefix
+            #       value: /echo
+            #     headers:
+            #     - name: version
+            #       value: v2
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 512Mi
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+# Environment variables
+env:
+  RDB_URL: "jdbc:mysql://localhost:3306/mong?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true"
+  RDB_USERNAME: "monguser"
+  SPRING_DATA_REDIS_HOST: "10.226.34.155"
+  SPRING_DATA_REDIS_PORT: "6379"
+  SPRING_DATA_MONGODB_URI: "mongodb://monguser:mongpassword123@10.0.0.45:27017/mong"
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+# Secrets
+secrets:
+  create: true
+  name: ""
+# ConfigMap
+configMap:
+  create: true
+  name: ""
+# Cloud SQL Auth Proxy configuration
+cloudSqlProxy:
+  enabled: true
+  image: gcr.io/cloudsql-docker/gce-proxy:latest
+  port: 3306
+  instance: mong-develop:asia-northeast3:mong-mysql
+nodeSelector: {}
+tolerations: []
+affinity: {}
+# =============================================================================
+# 배포 전략 설정
+# =============================================================================
+blueGreen:
+  enabled: false # Rolling Update 사용
+# =============================================================================
+# Metrics
+# =============================================================================
+metrics:
+  enabled: true

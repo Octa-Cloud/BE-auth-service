@@ -1,0 +1,156 @@
+# =============================================================================
+# Sleep Service Helm Chart Values
+# =============================================================================
+
+# =============================================================================
+# 이미지 설정
+# =============================================================================
+image:
+  repository: octacloud/sleep-service
+  tag: "d635e9ccfaaad120cd89459a1a05de1a1eb0e27d-18611639585"
+  pullPolicy: IfNotPresent
+# =============================================================================
+# 서비스 설정
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+# =============================================================================
+# 배포 설정
+# =============================================================================
+replicaCount: 2
+# Rolling Update 비활성화 (문제 파드 방지)
+strategy:
+  type: Recreate
+# =============================================================================
+# 리소스 설정
+# =============================================================================
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+# =============================================================================
+# 헬스 체크 설정
+# =============================================================================
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  failureThreshold: 5
+  timeoutSeconds: 10
+# =============================================================================
+# 환경 변수 설정
+# =============================================================================
+env:
+  SPRING_PROFILES_ACTIVE: "dev"
+  # PSA replicaset: read from secondary, write handled by CDC to primary
+  SPRING_DATA_MONGODB_URI: "mongodb://mongodb-0.mongodb-headless.microservices-dev.svc.cluster.local:27017,mongodb-1.mongodb-headless.microservices-dev.svc.cluster.local:27017,mongodb-2.mongodb-headless.microservices-dev.svc.cluster.local:27017/mong?replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=true"
+  SPRING_DATA_REDIS_HOST: "10.226.34.155"
+  SPRING_DATA_REDIS_PORT: "6379"
+# =============================================================================
+# 서비스 계정 설정
+# =============================================================================
+serviceAccount:
+  create: true
+  name: ""
+# =============================================================================
+# ConfigMap 설정
+# =============================================================================
+configMap:
+  create: true
+  name: ""
+# =============================================================================
+# Secret 설정
+# =============================================================================
+secrets:
+  create: true
+  name: ""
+  # JWT_KEY는 민감한 정보이므로 Secret으로 관리
+  JWT_KEY: ""
+sealedSecrets:
+  enabled: true
+  encryptedData:
+    JWT_KEY: "AgAptbdy7BOcGITXtZ55zEFKgmsPnwq9JRBNc0AYXrqgYYFar1XmAZ34L9UV7UKfqOMXVBuPqMLEiMlwfrj8es3fhUAubtm2ifE5nPnHfkyDQWpFMTKDrC1f1wdLnj73mT/COFqb83uMiELrlRPVa1DoDoPxUW/zmzi+oaaeDKUE6LbXMbNTyI4MMfWVo6pMVA4mxjfYHLJevkilSinvLtivqOQHa/8P03sGPmSXGstIFXBhiHRX0xo4PR/nYG7jNvEOcWQZbZf2RO0+VarMp9F62sj06GJNbVkJ4pmSMzqCHDuU3ECL5tzS2ihWxWVrxt08CkbXg7bERerg0DDnlarQHkgNi4IbeoGTCV+Wgqmgv4oIw1ip8wOFfYxjMIj6pqd/Srq3Zf1bFvbxVJC94ez5usZ+kO57E3gS0kNTpeYadtU5EWW7x5g+HX/GDkOnGQBGsyYE1EMjbNzj2nl6NNQND0sLgtTyq1/dEgULPe1StGgXgH3fOPO1+6O/9dW6c8jSPg7/m0JUdK+rhJ13OoIpX0XgyFFqqHHaNxKt8MD4SVwd5yb3fSBOeBv/cfyoxcVNidtcVd8bwaelsX+ahsiO6dtozpgCqJZTT23GGC7+KbOHNiZdSeK6hRtAWu0X0aFARfHvlp0LLZUQY+G5NKvuROThCbBG0Z8sKh6sUnGK1Ps1DjY2UoGZntYqBHlK5RI2QGnUibmzG0Jz/x+2dpRpuJkBNa5sE0PFuA71nnsh89+l2ZzJa08FHuM+iP05GzWJAlnQhF4jJvf8oXG1bfOQsIJFT2s0ZjMCHUTFTibWkltx3/8o6qBP"
+    create: "AgCLjzdGDF7xPCk+Pgx7oMPjwfaQlP6kO79rzzY8G1unodaEkHIQTUjf/LZcJCGKM4qsx4WfhpBvA1hgHEjG4UZc1sQUUuotTketaAA3H88jV+IdplFo77Oh/ENsorw7gSPCdcdgQj3QC/mdmwXRdOxyK9NplRdRaAcs2SQ+Z10ZkfQNvc0ZMrUIbGi+r1iPk34YskfLyMPyQDRJLCTWDAE8NW9OLdDEUByRi7whZrza96LZtjhZSP0cCjhdBpfGn9ZrmyG/ViVYILDVviSRxxgZfqcW1VJB0QaEjd+EMB+QYY0ADoDUq1pwZ5YGrhB/q5fe2a+IQMo9d0jUBAj8zKm2I8ZhNA3dbY8qKGYc7asoRdnYkWi/vOzwWLoPnXC9zpm+vDERPYqohnPBdd3hwqsoarlO6LXy9bTY8kvqCuTHWYZalBysG4G+GBRxYkQnJ6SNiM4YwBOG6bnFWbtnqr7mBmxH9auRByOS5crPWovoD4sumOl8QZoL/OF7lQK72+cUBSdZw828ePTL3MgBtgQqoSydbWmUqb/CihGwibBiTsz/naEdJ43ZceQ8VMFa2Fz6oWpRv/QrrNscmt4EwI2ZRNxFxXTtMXm5k5wog12e9WWrCJIAZG/Ref7IlKmfOMO4KCsXARjZNtij5SC1HLHDLTSVSAQspVmsMP1ywpvDk43h217cBxi1HKHzmJ9O/ofI1Fv1nA=="
+    name: "AgBA+5EfGI/ci+qS7RSisv1j1z141ij59YOm0p4bFPlvGbWtikiy26MCOzN7FP4FyM5rWCTEMc9fp2ao7J6Lbc8RLTYGuwtCbgWie4237OxxN/hzwW1X1fy4PjmAKk3a2GXaNmUrq1iXnz/xbEM6trnnzuiSQqRjnGvfL9CxN6QUxNMC7hZvsBBiVuelKGvCjX+IsdvfKRRVycbRB1Q+JnsD9drrC/pyOeYR4ZQ+YahyvYmTVmWzvCClnJ47r67EWinC7JQxj6iyLdA4vRraNz6l0Y4dbj3kasY3L+ZxLoqytyd5LF22sDsN/P+yUEeGebSk0mQbvT/uRPIghm2Uk3XPpYtQSKQn7aYNRmNBvWvRb+ryP41+IxtPhHIw+WPUoprRcB9dAVCryjh2QrLb8PYta4IMMjvIsJgN+WfLuiy53fGrN1fRrMwSNXJk1++diWG4GAqnhNYowCWBWy2UW6RjVrhxfJLWL+kRCPeF0IIVAjKscwT5a7kvtAqyEHy6LEEnjRifdIiUza0brd+4jJYwNWaYajDI6g7mL+f9g7SUosVpN6DGag/sjRevLG7NOod04yXba+RChIk6ekkAXP7sZYoWvVKmqZ7581NP+4uXCb+Gsa+3PzGkC+7CaDH4PC3AsqevuTzuSTdt0q0ffQ776gbHP/woGKzqFgSbWZgSi5mU9x+gaQVWotaD5zqdotBB66BLOUyTnUdMJjfTrA=="
+# =============================================================================
+# Ingress 설정
+# =============================================================================
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/auth-url: "http://auth-service.microservices-dev.svc.cluster.local:8080/api/auth/internal"
+    nginx.ingress.kubernetes.io/auth-method: "POST"
+    nginx.ingress.kubernetes.io/auth-request-headers: "Authorization"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: "api.mong.live"
+      paths:
+        - path: /api/sleep
+          pathType: Prefix
+  tls:
+    - secretName: api-mong-live-tls
+      hosts:
+        - "api.mong.live"
+# =============================================================================
+# Cloud SQL Proxy 설정 (필요시)
+# =============================================================================
+cloudSqlProxy:
+  enabled: false
+  port: 3306
+  connectionName: ""
+# =============================================================================
+# 노드 선택자
+# =============================================================================
+nodeSelector: {}
+# =============================================================================
+# 톨러레이션
+# =============================================================================
+tolerations: []
+# =============================================================================
+# 어피니티
+# =============================================================================
+affinity: {}
+# =============================================================================
+# 배포 전략 설정
+# =============================================================================
+blueGreen:
+  enabled: false # Rolling Update 사용
+# =============================================================================
+# 추가 설정
+# =============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/actuator/prometheus"
+  prometheus.io/port: "8080"
+podSecurityContext: {}
+securityContext: {}
+imagePullSecrets: []
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+lifecycle: {}
+# =============================================================================
+# Metrics 설정
+# =============================================================================
+metrics:
+  enabled: true
