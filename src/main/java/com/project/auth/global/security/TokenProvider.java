@@ -42,22 +42,15 @@ public class TokenProvider {
     }
 
     private String createToken(Long id, String subject, Long expiration) {
-//        Date now = new Date(); 유저 로그인시 엑세스 토큰이 바로 만료되는 현상으로 인해 수정
-        var now = java.time.Instant.now();
-        var exp = now.plus(java.time.Duration.ofMinutes(expiration));
-
+        LocalDateTime now = LocalDateTime.now();
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                // 유저 로그인시 엑세스 토큰이 9시간 전으로 생성돼 바로 만료되는 현상으로 인해 수정,
-//                .setIssuedAt(now)
-//                .setExpiration(Date.from(
-//                        LocalDateTime.now()
-//                                .plusMinutes(expiration)
-//                                .atZone(ZoneId.of("Asia/Seoul"))
-//                                .toInstant()
-//                ))
-                .setIssuedAt(java.util.Date.from(now))
-                .setExpiration(java.util.Date.from(exp))   // ✅ 타임존 영향 없음
+                .setIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
+                .setExpiration(Date.from(
+                        now.plusMinutes(expiration)
+                                .atZone(ZoneId.systemDefault())
+                                .toInstant()
+                ))
                 .setSubject(subject)
                 .claim(jwtProperties.getId(), id)
                 .signWith(Keys.hmacShaKeyFor(jwtProperties.getKey().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
