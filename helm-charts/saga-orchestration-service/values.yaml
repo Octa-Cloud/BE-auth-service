@@ -64,6 +64,11 @@ env:
   RDB_PASSWORD: "mongpassword123"
   RDB_URL: "jdbc:mysql://localhost:3306/mong-saga?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
   
+  # Kafka configuration
+  KAFKA_BOOTSTRAP_SERVERS: "pkc-gq2xn.asia-northeast3.gcp.confluent.cloud:9092"
+  KAFKA_SASL_MECHANISM: "PLAIN"
+  KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
+  
   # Logging
   LOG_LEVEL: "INFO"
   LOG_PROFILE: "text"
