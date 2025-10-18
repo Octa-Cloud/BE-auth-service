@@ -2,6 +2,31 @@ server:
   port: 8080
 
 spring:
+  kafka:
+    bootstrap-servers: pkc-gq2xn.asia-northeast3.gcp.confluent.cloud:9092
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: >
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="AGQDVMNB6DVPXFX7"
+        password="cfltBaumbQnzwuPIRS3E8S1MNrfqrsb9LXzDvUBPBrP0YQRUTfBqdD2nOKmzUXFw";
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 100
+      max-poll-interval-ms: 300000  # 5분
+    admin:
+      auto-create: false
+      fail-fast: true
+
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
@@ -80,7 +105,7 @@ logging:
     org.springframework: DEBUG
     org.springframework.web: DEBUG
     org.springframework.boot: DEBUG
-    com.project.user: DEBUG
+    com.project.auth: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
 
@@ -109,7 +134,7 @@ management:
       enabled: true
   metrics:
     tags:
-      application: user-service
+      application: auth-service
     distribution:
       percentiles-histogram:
         http.server.requests: true
