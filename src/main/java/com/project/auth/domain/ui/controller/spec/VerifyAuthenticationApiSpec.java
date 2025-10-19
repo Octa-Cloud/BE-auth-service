@@ -12,7 +12,7 @@ public interface VerifyAuthenticationApiSpec {
     @Operation(
             summary = "인증이 필요한 요청의 인증을 담당하는 API"
     )
-    @PostMapping("/api/auth/internal")
+    @PostMapping("/api/auth/verify")
     ResponseEntity<Void> verify(
         @CurrentUser Long userNo
     );
